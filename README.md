@@ -48,30 +48,31 @@ Visualize and compare original, noisy, and denoised images.
 ### Register Number:212224040109
 
 ~~~
-Iclass DenoisingAutoencoder(nn.Module):
+class DenoisingAutoencoder(nn.Module):
     def __init__(self):
         super(DenoisingAutoencoder, self).__init__()
+
+        # Encoder
         self.encoder = nn.Sequential(
-            nn.Conv2d(1, 16, 3, padding=1),  # 28x28 -> 28x28
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),             # 28x28 -> 14x14
-            nn.Conv2d(16, 8, 3, padding=1), # 14x14 -> 14x14
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2)              # 14x14 -> 7x7
+            nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1),   # (1,28,28) -> (32,14,14)
+            nn.ReLU(True),
+            nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),  # (32,14,14) -> (64,7,7)
+            nn.ReLU(True)
         )
+
+        # Decoder
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(8, 16, 2, stride=2),    # 7x7 -> 14x14
-            nn.ReLU(),
-            nn.ConvTranspose2d(16, 8, 2, stride=2),    # 14x14 -> 28x28
-            nn.ReLU(),
-            nn.Conv2d(8, 1, 3, padding=1),             # 28x28
-            nn.Sigmoid()
+            nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),  # (64,7,7) -> (32,14,14)
+            nn.ReLU(True),
+            nn.ConvTranspose2d(32, 1, kernel_size=3, stride=2, padding=1, output_padding=1),   # (32,14,14) -> (1,28,28)
+            nn.Sigmoid()  # Output in range [0,1]
         )
 
     def forward(self, x):
         x = self.encoder(x)
         x = self.decoder(x)
         return x
+
 
 model = DenoisingAutoencoder().to(device)
 criterion = nn.MSELoss()
@@ -140,16 +141,29 @@ visualize_denoising(model, test_loader)
 
 ~~~
 
+
+### DATASET
+
+<img width="585" height="355" alt="image" src="https://github.com/user-attachments/assets/3f118ea3-9b54-4d9e-9475-1a856ff0617c" />
+
+
 ## OUTPUT
 
 ### Model Summary
 
-Include your model summary
+<img width="789" height="468" alt="image" src="https://github.com/user-attachments/assets/36019aad-f7ce-4262-a860-f6a08ce035c7" />
+
+
 
 ### Original vs Noisy Vs Reconstructed Image
 
-Include a few sample images here.
+
+<img width="447" height="392" alt="image" src="https://github.com/user-attachments/assets/3c768469-cd22-49bf-be06-df08b9bd1f46" />
+
 
 
 
 ## RESULT
+
+
+The convolutional autoencoder was successfully trained to remove noise from MNIST images, effectively reconstructing clean and clear outputs from noisy inputs.
